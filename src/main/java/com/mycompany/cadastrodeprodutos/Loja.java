@@ -68,7 +68,9 @@ public class Loja {
     public String listarVendas() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < numeroVendas; i++) {
-            sb.append(vendas[i].toString()).append("\n");
+            sb.append("Cliente: ").append(vendas[i].cliente.getNome())
+                    .append(" - Produtos: ").append(vendas[i].produto[i].getNome())
+                    .append(" - Preço total: R$").append(String.format("%.2f", vendas[i].calcularTotal()));
         }
         return sb.toString();
     }

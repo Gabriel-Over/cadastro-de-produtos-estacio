@@ -3,8 +3,10 @@ package com.mycompany.cadastrodeprodutos;
 import javax.swing.JOptionPane;
 
 public class Cadastrodeprodutos {
+    //Objeto loja que serve para fazer as operações necessarias
     private static Loja loja = new Loja();
     
+    //Função principal
     public static void main(String[] args) {
         
         String[] respostas = {
@@ -25,7 +27,7 @@ public class Cadastrodeprodutos {
                     "Escolha uma opção",
                     "Cadastro e Controle de Vendas", 
                     JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
+                    JOptionPane.PLAIN_MESSAGE,
                     null, 
                     respostas,
                     0
@@ -41,41 +43,58 @@ public class Cadastrodeprodutos {
                 case 2:
                     realizarVendas();
                     break;
+                //Do 3 ao 5 -> se não houver nada cadastrado
                 case 3:
-                    JOptionPane.showMessageDialog(null, loja.listarProdutos());
+                    if(loja.listarProdutos().equals("")) {
+                        JOptionPane.showMessageDialog(null, "Nenhum produto cadastrado");
+                    } else {
+                        JOptionPane.showMessageDialog(null, loja.listarProdutos());
+                    }
                     break;
                 case 4:
-                    JOptionPane.showMessageDialog(null, loja.listarClientes());
+                    if(loja.listarClientes().equals("Clientes:\n" + "")) {
+                        JOptionPane.showMessageDialog(null, "Nenhum cliente cadastrado");
+                    } else {
+                        JOptionPane.showMessageDialog(null, loja.listarClientes());
+                    }
                     break;
                 case 5:
-                    JOptionPane.showMessageDialog(null, loja.listarVendas());
+                    if(loja.listarVendas().equals("")) {
+                        JOptionPane.showMessageDialog(null, "Nenhuma venda cadastrada");
+                    } else {
+                        JOptionPane.showMessageDialog(null, loja.listarVendas());
+                    }
                     break;
                 case 6:
                     System.exit(0);
                     break;
                 default:
+                    System.exit(0);
                     break;
             }
         }
     }
     
+    //Cadastro de cliente
     private static void cadastrarCliente() {
         boolean cadastroCompleto = false;
         int tentativas = 1;
         final int MAX_TENTATIVAS = 3;
         String nome;
         String cpf;
+        
+        //Inicio do looping
         while (cadastroCompleto == false || tentativas <= MAX_TENTATIVAS) {
             nome = JOptionPane.showInputDialog("Digite o nome do cliente");
             if(nome == null) return;
-            
-            if (nome.trim().length() < 3) {
-                JOptionPane.showMessageDialog(null, "Nome inválido! Deve ter pelo menos 3 caracteres. \nTentativas restantes: " + (MAX_TENTATIVAS - tentativas - 1));
+            //Se o nome tiver menos que 2 letras é invalido
+            if (nome.trim().length() < 2) {
+                JOptionPane.showMessageDialog(null, "Nome inválido! Deve ter pelo menos 2 caracteres. \nTentativas restantes: " + (MAX_TENTATIVAS - tentativas - 1));
                 tentativas++;
                 continue;
             }
-            
-            cpf = JOptionPane.showInputDialog("Digite o cpf do cliente");
+            //Validação de CPF
+            cpf = JOptionPane.showInputDialog("Digite o CPF do cliente");
             if (cpf == null) return;
             
             //Apenas pra atribuir as variaveis
@@ -104,12 +123,14 @@ public class Cadastrodeprodutos {
                     loja.adicionarClientes(tempCliente);
                     JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso!");
                     cadastroCompleto = true;
+                    tentativas = MAX_TENTATIVAS + 1;
                 }
             }
         }
     }
     
-   private static void cadastrarProdutos() {
+    //Função de cadastrar produtos
+    private static void cadastrarProdutos() {
         double preco;
         
         boolean cadastroCompleto = false;
@@ -127,20 +148,22 @@ public class Cadastrodeprodutos {
             String nome = JOptionPane.showInputDialog("Digite o nome do produto");
             
             String escolherPreco = JOptionPane.showInputDialog("Digite o preco do produto");
+            
             if (escolherPreco == null || !escolherPreco.matches("^\\d+(\\.\\d+)?$")) {
                 JOptionPane.showMessageDialog(null, "Preço inválido!");
                 break;
+            } else {
+                preco = Double.parseDouble(escolherPreco);
+
+                Produto tempProduto = new Produto(id, nome, preco);
+
+                loja.adicionarProdutos(tempProduto);
+                cadastroCompleto = true;
             }
-            
-            preco = Double.parseDouble(escolherPreco);
-            
-            Produto tempProduto = new Produto(id, nome, preco);
-            
-            loja.adicionarProdutos(tempProduto);
-            cadastroCompleto = true;
         }
     }
     
+    //Função de realizar vendas
     private static void realizarVendas() {
         if (loja.listarClientes().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Nenhum cliente cadastrado!");
@@ -151,7 +174,7 @@ public class Cadastrodeprodutos {
         
         while (vendaCompleta == false){
             String clientesDisponiveis = loja.listarClientes();
-            String escolhaCpf = JOptionPane.showInputDialog("Escolha um cliente:\n" + clientesDisponiveis + "\nDigite o Cpf do cliente:");
+            String escolhaCpf = JOptionPane.showInputDialog("Escolha um cliente:\n" + clientesDisponiveis + "\nDigite o CPF do cliente:");
 
             Cliente clienteSelecionado = null;
             for (int i = 0; i < loja.getNumeroClientes(); i++) {
