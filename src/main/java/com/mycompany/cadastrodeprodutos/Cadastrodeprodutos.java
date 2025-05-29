@@ -132,34 +132,61 @@ public class Cadastrodeprodutos {
     //Função de cadastrar produtos
     private static void cadastrarProdutos() {
         double preco;
-        
         boolean cadastroCompleto = false;
-        
-        while (cadastroCompleto == false) {
-            //Se o ID for nulo ou nao for inteiramente em inteiro ele para
-            String id = JOptionPane.showInputDialog("Digite o ID do produto");
-            if (id == null ) return;
-            
+
+        while (!cadastroCompleto) {
+            String[] opcoes = {"Produto Normal", "Livro"};
+            int tipo = JOptionPane.showOptionDialog(
+                null,
+                "Selecione o tipo:",
+                "Cadastro de Produto",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]
+            );
+
+            if (tipo == JOptionPane.CLOSED_OPTION) return;
+
+            String id = JOptionPane.showInputDialog("Digite o ID do produto:");
+            if (id == null) return;
+
             if (!id.matches("^\\d+$")) {
                 JOptionPane.showMessageDialog(null, "ID inválido!");
-                break;
+                continue;
             }
-            
-            String nome = JOptionPane.showInputDialog("Digite o nome do produto");
-            
-            String escolherPreco = JOptionPane.showInputDialog("Digite o preco do produto");
-            
-            if (escolherPreco == null || !escolherPreco.matches("^\\d+(\\.\\d+)?$")) {
+
+            String nome = JOptionPane.showInputDialog("Digite o nome:");
+            if (nome == null || nome.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nome inválido!");
+                continue;
+            }
+
+            String precoStr = JOptionPane.showInputDialog("Digite o preço:");
+            if (precoStr == null || !precoStr.matches("^\\d+(\\.\\d+)?$")) {
                 JOptionPane.showMessageDialog(null, "Preço inválido!");
-                break;
-            } else {
-                preco = Double.parseDouble(escolherPreco);
-
-                Produto tempProduto = new Produto(id, nome, preco);
-
-                loja.adicionarProdutos(tempProduto);
-                cadastroCompleto = true;
+                continue;
             }
+            preco = Double.parseDouble(precoStr);
+
+            if (opcoes[tipo].equals("Livro")) {
+                String autor = JOptionPane.showInputDialog("Digite o autor do livro:");
+                if (autor == null || autor.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Autor inválido!");
+                    continue;
+                }
+
+                Livro livro = new Livro(id, nome, preco, autor);
+                loja.adicionarLivro(livro);
+                JOptionPane.showMessageDialog(null, "Livro cadastrado com sucesso!");
+            } else {
+                Produto produto = new Produto(id, nome, preco);
+                loja.adicionarProdutos(produto);
+                JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
+            }
+
+            cadastroCompleto = true;
         }
     }
     
@@ -169,10 +196,10 @@ public class Cadastrodeprodutos {
             JOptionPane.showMessageDialog(null, "Nenhum cliente cadastrado!");
             return;
         }
-        
+
         boolean vendaCompleta = false;
-        
-        while (vendaCompleta == false){
+
+        while (!vendaCompleta) {
             String clientesDisponiveis = loja.listarClientes();
             String escolhaCpf = JOptionPane.showInputDialog("Escolha um cliente:\n" + clientesDisponiveis + "\nDigite o CPF do cliente:");
 
@@ -187,47 +214,59 @@ public class Cadastrodeprodutos {
                 JOptionPane.showMessageDialog(null, "Cliente não encontrado!");
                 return;
             }
-            
-            String produtosDisponiveis = loja.listarProdutos();
+          
             
             //Aqui começa a parte de procurar produto
-            Produto[] produtoSelecionado = new Produto[10];
+            String produtosDisponiveis = loja.listarProdutos();
+            Produto[] produtosSelecionados = new Produto[10];
             int contagemProdutos = 0;
             boolean continuar = true;
-            
+
             while (continuar && contagemProdutos < 10) {
-                String escolhaID = JOptionPane.showInputDialog("Escolha até 10 Produtos:\n" + produtosDisponiveis + "\nDigite o ID do Produto (Ou F para sair)");
-                
-                //Se apertar em cancelar ou f
+                String escolhaID = JOptionPane.showInputDialog(
+                    "Escolha até 10 Produtos:\n" + produtosDisponiveis + 
+                    "\nDigite o ID do Produto (Ou F para sair)");
+
                 if (escolhaID == null || escolhaID.equalsIgnoreCase("F")) {
                     continuar = false;
                     continue;
                 }
-                Produto produto = null;
-                for(int i = 0; i < loja.getNumeroProdutos(); i++) {
-                    if(loja.produtos[i].getId().equals(escolhaID)) {
-                        produto = loja.produtos[i];
-                        break;
-                    }
-                }
-                
-                if(produto != null) {
-                    produtoSelecionado[contagemProdutos++] = produto;
+
+                Produto produto = loja.buscarProdutoPorId(escolhaID);
+
+                if (produto != null) {
+                    produtosSelecionados[contagemProdutos++] = produto;
+                    String tipo = (produto instanceof Livro) ? "Livro" : "Produto";
                     JOptionPane.showMessageDialog(null, 
-                    produto.getNome() + " adicionado ao carrinho!");
+                        tipo + " adicionado: " + produto.getNome());
                 } else {
                     JOptionPane.showMessageDialog(null, "Erro, ID não encontrado!");
                 }
             }
-            
+
             if (contagemProdutos > 0) {
-                Produto[] produtoVenda = new Produto[contagemProdutos];
-                System.arraycopy(produtoSelecionado, 0, produtoVenda, 0, contagemProdutos);
-                
-                loja.realizarVenda(clienteSelecionado, produtoVenda);
-                JOptionPane.showMessageDialog(null, "Venda Concluida!\nValor total: R$" +
-                        String.format("%.2f", loja.vendas[loja.getNumeroVendas()-1].calcularTotal()));
-                
+                Produto[] produtosVenda = new Produto[contagemProdutos];
+                System.arraycopy(produtosSelecionados, 0, produtosVenda, 0, contagemProdutos);
+
+                loja.realizarVenda(clienteSelecionado, produtosVenda);
+
+                // Mostrar resumo da venda
+                StringBuilder resumo = new StringBuilder();
+                resumo.append("Venda Concluída!\n\n");
+                resumo.append("Cliente: ").append(clienteSelecionado.getNome()).append("\n");
+                resumo.append("Itens:\n");
+
+                for (Produto p : produtosVenda) {
+                    String tipo = (p instanceof Livro) ? "Livro" : "Produto";
+                    resumo.append("- [").append(tipo).append("] ")
+                         .append(p.getNome()).append(" - R$")
+                         .append(String.format("%.2f", p.getPreço())).append("\n");
+                }
+
+                resumo.append("\nTotal: R$")
+                     .append(String.format("%.2f", loja.vendas[loja.getNumeroVendas()-1].calcularTotal()));
+
+                JOptionPane.showMessageDialog(null, resumo.toString());
                 vendaCompleta = true;
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum produto selecionado, Venda Cancelada");
