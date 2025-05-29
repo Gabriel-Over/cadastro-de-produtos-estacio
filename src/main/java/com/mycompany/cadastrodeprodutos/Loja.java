@@ -140,4 +140,8 @@ public class Loja {
     public int getNumeroVendas() {
         return numeroVendas;
     }
+
+    public int getNumeroLivros() {
+        return numeroLivros;
+    }   
 }
