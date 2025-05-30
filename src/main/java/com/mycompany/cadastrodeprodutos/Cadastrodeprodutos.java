@@ -157,6 +157,14 @@ public class Cadastrodeprodutos {
                 continue;
             }
 
+            //Verifica se o ID ja foi cadastrado
+            for (int i = 0; i < loja.getNumeroProdutos(); i++) {
+                if(id.equals(loja.produtos[i].getId())) {
+                    JOptionPane.showMessageDialog(null, "Este ID já esta cadastrado!");
+                    return;
+                }
+            }
+            
             String nome = JOptionPane.showInputDialog("Digite o nome:");
             if (nome == null || nome.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Nome inválido!");
